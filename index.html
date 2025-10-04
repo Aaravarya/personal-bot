@@ -98,24 +98,69 @@
                 setMessage(event.target.value);
             }
 
-            function sendMessage(){
+            // function sendMessage(){
                
-                const response= Chatbot.getResponse(message);
+            //     const response= Chatbot.getResponse(message);
 
-                setMessages([
-                    ...messages,
-                    {
-                        message:message,
-                        sender:'user'
-                    },
-                    {
-                        message:response,
-                        sender:'robot'
-                    }
-                ]);
+            //     setMessages([
+            //         ...messages,
+            //         {
+            //             message:message,
+            //             sender:'user'
+            //         },
+            //         {
+            //             message:response,
+            //             sender:'robot'
+            //         }
+            //     ]);
 
-                setMessage('');
-            }
+            //     setMessage('');
+            // }
+
+             async function sendMessage() {
+  // add user message to chat
+  setMessages([
+    ...messages,
+    {
+      message: message,
+      sender: 'user'
+    }
+  ]);
+
+  // send to FastAPI backend
+  try {
+    const response = await fetch("http://127.0.0.1:8000/ask", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ question: message })
+    });
+
+    const data = await response.json();
+
+    // add bot response to chat
+    setMessages(prevMessages => [
+      ...prevMessages,
+      {
+        message: data.answer,
+        sender: 'robot'
+      }
+    ]);
+  } catch (error) {
+    console.error("Error:", error);
+    setMessages(prevMessages => [
+      ...prevMessages,
+      {
+        message: "⚠️ Error connecting to the bot server.",
+        sender: "robot"
+      }
+    ]);
+  }
+
+  setMessage('');
+}
+
 
              
             return (
